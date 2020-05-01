@@ -1,7 +1,10 @@
+import json
+
 from gql import gql, Client
 from gql.transport.requests import RequestsHTTPTransport
 from dotenv import load_dotenv
 load_dotenv()
+
 
 import os
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -23,17 +26,34 @@ client = Client(
 )
 
 query = gql('''
-    query { 
-      viewer { 
-        login
-        companyHTML
-        bioHTML
-        bio
-        avatarUrl
-        anyPinnableItems
+    query Me { 
+      viewer {
+        topRepositories(orderBy: {field: CREATED_AT, direction: DESC}, first: 100) {
+          edges {
+            node {
+              name
+              primaryLanguage {
+                name
+              }
+              diskUsage
+              issues {
+                totalCount
+              }
+              languages(first: 10) {
+                edges {
+                  node {
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
 ''')
 
 result = client.execute(query)
 
+with open('result.json', 'w') as fp:
+    json.dump(result, fp)
