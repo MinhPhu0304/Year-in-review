@@ -28,22 +28,21 @@ client = Client(
 query = gql('''
     query Me { 
       viewer {
-        topRepositories(orderBy: {field: CREATED_AT, direction: DESC}, first: 100) {
-          edges {
-            node {
+        contributionsCollection(from: "2019-12-31T11:00:00.000Z") {
+          commitContributionsByRepository(maxRepositories: 100) {
+            repository {
               name
               primaryLanguage {
                 name
               }
-              diskUsage
-              issues {
+              languages(first: 100) {
+                nodes {
+                  name
+                }
                 totalCount
-              }
-              languages(first: 10) {
-                edges {
-                  node {
-                    name
-                  }
+                pageInfo {
+                  hasNextPage
+                  startCursor
                 }
               }
             }
@@ -55,12 +54,12 @@ query = gql('''
 
 result = client.execute(query)
 print('Analyzing data...')
-topRepoList = result['viewer']['topRepositories']['edges']
-totalRepo = len(topRepoList)
+repoList = result['viewer']['contributionsCollection']['commitContributionsByRepository']
+totalRepo = len(repoList)
 topLanguage = dict()
 
-for repo in topRepoList: 
-  repoInfo = repo['node']
+for repo in repoList: 
+  repoInfo = repo['repository']
   repoName = repoInfo['name']
   if repoInfo['primaryLanguage'] is not None:
     repoTopLanguage = repoInfo['primaryLanguage']['name']
