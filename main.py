@@ -1,6 +1,7 @@
-import json
 import matplotlib.pyplot as plt
 import os
+import datetime
+import dateutil.parser as DateParser
 
 from gql import gql, Client
 from gql.transport.requests import RequestsHTTPTransport
@@ -24,32 +25,36 @@ client = Client(
     transport=requestTransport,
     fetch_schema_from_transport=True,
 )
+now = datetime.datetime.now()
+current_year = now.year
+first_date_of_the_year = DateParser.parse(f'1 January {current_year}')
+iso_format_first_date = first_date_of_the_year.isoformat()
 
-query = gql('''
-    query Me { 
-      viewer {
-        contributionsCollection(from: "2019-12-31T11:00:00.000Z") {
-          commitContributionsByRepository(maxRepositories: 100) {
-            repository {
+query = gql(f'''
+    query Me {{ 
+      viewer {{
+        contributionsCollection(from: "{iso_format_first_date}") {{
+          commitContributionsByRepository(maxRepositories: 100) {{
+            repository {{
               name
-              primaryLanguage {
+              primaryLanguage {{
                 name
-              }
-              languages(first: 100) {
-                nodes {
+              }}
+              languages(first: 100) {{
+                nodes {{
                   name
-                }
+                }}
                 totalCount
-                pageInfo {
+                pageInfo {{
                   hasNextPage
                   startCursor
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                }}
+              }}
+            }}
+          }}
+        }}
+      }}
+    }}
 ''')
 
 result = client.execute(query)
