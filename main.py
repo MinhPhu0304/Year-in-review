@@ -1,12 +1,12 @@
 import json
+import matplotlib.pyplot as plt
+import os
 
 from gql import gql, Client
 from gql.transport.requests import RequestsHTTPTransport
 from dotenv import load_dotenv
 load_dotenv()
 
-
-import os
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 requestTransport=RequestsHTTPTransport(
@@ -54,6 +54,31 @@ query = gql('''
 ''')
 
 result = client.execute(query)
+print('Analyzing data...')
+topRepoList = result['viewer']['topRepositories']['edges']
+totalRepo = len(topRepoList)
+topLanguage = dict()
 
-with open('result.json', 'w') as fp:
-    json.dump(result, fp)
+for repo in topRepoList: 
+  repoInfo = repo['node']
+  repoName = repoInfo['name']
+  if repoInfo['primaryLanguage'] is not None:
+    repoTopLanguage = repoInfo['primaryLanguage']['name']
+    if repoTopLanguage not in topLanguage:
+      topLanguage[repoTopLanguage] = 1
+    else:
+      topLanguage[repoTopLanguage] = topLanguage[repoTopLanguage] + 1
+
+for language in topLanguage:
+  topLanguage[language] = round(topLanguage[language] / totalRepo * 100, 2)
+
+labels = topLanguage.keys()
+values = topLanguage.values()
+
+explode = [0] * len(labels)
+fig1, ax1 = plt.subplots()
+ax1.pie(values, explode=explode, labels=labels, autopct='%1.1f%%',
+        shadow=True, startangle=90)
+ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+print('Done')
+plt.show()
