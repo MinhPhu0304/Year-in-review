@@ -4,4 +4,4 @@ matplotlib==3.2.1
 numpy==1.18.3
 python-dateutil==2.8.1
 python-dotenv==0.13.0
-requests==2.23.0
+requests==2.31.0
